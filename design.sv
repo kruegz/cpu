@@ -101,9 +101,9 @@ module cpu(cpu_if cif);
   
   assign aif.clock = clock;
   assign aif.reset = reset;
-  //assign aif.opcode = opcode;
-  //assign aif.r1 = r1;
-  //assign aif.r2 = r2;
+  assign aif.opcode = opcode;
+  assign aif.r1 = reg_file[r1addr];
+  assign aif.r2 = reg_file[r2addr];
   assign dout = aif.dout;
   
   alu alu1(aif);
@@ -126,7 +126,7 @@ module cpu(cpu_if cif);
           
           
           // Get instruction from instruction memory
-          $strobe("instr=0x%h", cif.instr);
+          //$strobe("instr=0x%h", cif.instr);
           
           cpu_state <= DECODE;
           
@@ -140,7 +140,7 @@ module cpu(cpu_if cif);
           r2addr <= cif.instr[7:4];
           rdaddr <= cif.instr[3:0];
           
-          $strobe("opcode=%h r1addr=%h r2addr=%h rdaddr=%h", opcode, r1addr, r2addr, rdaddr);
+          //$strobe("opcode=%h r1addr=%h r2addr=%h rdaddr=%h", opcode, r1addr, r2addr, rdaddr);
           
           cpu_state <= EXECUTE;
           
@@ -149,11 +149,11 @@ module cpu(cpu_if cif);
         EXECUTE: begin
           
           // Perform ALU operation
-          aif.opcode <= opcode;
-          aif.r1 <= reg_file[r1addr];
-          aif.r2 <= reg_file[r2addr];
+          //aif.opcode <= opcode;
+          //aif.r1 <= reg_file[r1addr];
+          //aif.r2 <= reg_file[r2addr];
           
-          $strobe("opcode=%s r1=%h r2=%h", aif.opcode.name(), aif.r1, aif.r2);
+          //$strobe("opcode=%s r1=%h r2=%h", aif.opcode.name(), aif.r1, aif.r2);
           
           cpu_state <= MEM;
           
@@ -166,7 +166,8 @@ module cpu(cpu_if cif);
           
           // Perform memory operation
           
-          $strobe("dout=%h aif.dout=%h", dout, aif.dout);
+          //$strobe("dout=%h aif.dout=%h", dout, aif.dout);
+          `uvm_info("CPU", $sformatf("%s %0h %0h = %0h -> r%0d", opcode.name(), aif.r1, aif.r2, dout, rdaddr), UVM_MEDIUM)
           
           cpu_state <= WB;
           
@@ -177,7 +178,7 @@ module cpu(cpu_if cif);
           // Write back to register file
           reg_file[rdaddr] <= dout;
           
-          $strobe("reg_file[rdaddr]=%h", reg_file[rdaddr]);
+          //$strobe("reg_file[rdaddr]=%h", reg_file[rdaddr]);
           
           cpu_state <= FETCH;
           
@@ -196,7 +197,7 @@ module cpu(cpu_if cif);
       
       // RESET
       
-      `uvm_info("CPU", "RESET", UVM_HIGH)
+      `uvm_info("CPU", "RESET", UVM_MEDIUM)
       
       // Reset register file
       for (i=0; i<RF_SIZE; i++) reg_file[i] <= i;

@@ -2,7 +2,8 @@ class my_driver extends uvm_driver #(my_transaction);
 
   `uvm_component_utils(my_driver)
   
-  parameter RESET_CLKS = 3;
+  parameter RESET_CYCLES = 3;  // Number of cycles to hold reset low
+  parameter CPU_CYCLES   = 5;  // Number of cycles to complete an instruction
 
   virtual cpu_if cpu_vif;
 
@@ -22,7 +23,7 @@ class my_driver extends uvm_driver #(my_transaction);
     
     // First toggle reset
     cpu_vif.reset = 0;
-    repeat (RESET_CLKS) @(posedge cpu_vif.clock);
+    repeat (RESET_CYCLES) @(posedge cpu_vif.clock);
     cpu_vif.reset = 1;
     
     phase.drop_objection(this);
@@ -38,7 +39,7 @@ class my_driver extends uvm_driver #(my_transaction);
       cpu_vif.instr  = req.instr;
       
       // CPU needs 5 cycles to complete an instruction
-      repeat (5) @(posedge cpu_vif.clock);
+      repeat (CPU_CYCLES) @(posedge cpu_vif.clock);
 
       seq_item_port.item_done();
     end
