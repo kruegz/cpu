@@ -113,7 +113,7 @@ module cpu(cpu_if cif);
   integer i;
   always @(posedge cif.clock) begin
     
-    if (cif.reset != 1) begin
+    if (cif.reset != 0) begin
       
       `uvm_info("CPU", $sformatf("%s", cpu_state.name()), UVM_HIGH)
       
