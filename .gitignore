@@ -1,0 +1,12 @@
+.bash_logout
+.bash_profile
+.bashrc
+csrc/
+dump.vcd
+dump_vpd.do
+simv
+simv.daidir/
+synopsys_sim.setup
+tr_db.log
+ucli.key
+vc_hdrs.h
