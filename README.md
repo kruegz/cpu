@@ -1,2 +1,2 @@
 # CPU
-## CPU design with SystemVerilog/UVM verification
+CPU design with SystemVerilog/UVM verification
