@@ -1,9 +1,6 @@
 class my_driver extends uvm_driver #(my_transaction);
 
   `uvm_component_utils(my_driver)
-  
-  parameter RESET_CYCLES = 3;  // Number of cycles to hold reset low
-  parameter CPU_CYCLES   = 5;  // Number of cycles to complete an instruction
 
   virtual cpu_if cpu_vif;
 
@@ -16,33 +13,51 @@ class my_driver extends uvm_driver #(my_transaction);
     if(!uvm_config_db#(virtual cpu_if)::get(this, "", "cpu_vif", cpu_vif)) begin
       `uvm_error("", "uvm_config_db::get failed")
     end
-  endfunction
+  endfunction 
   
   task reset_phase(uvm_phase phase);
-    phase.raise_objection(this);
+      // We raise objection to keep the test from completing
+      phase.raise_objection(this);
     
-    // First toggle reset
-    cpu_vif.reset = 0;
-    repeat (RESET_CYCLES) @(posedge cpu_vif.clock);
-    cpu_vif.reset = 1;
-    
-    phase.drop_objection(this);
-  endtask
+      // Initial conditions
+      cpu_vif.reset = 0;
+      cpu_vif.program_en = 0;
+      repeat(5) @(posedge cpu_vif.clock);
+      
+      // First toggle reset
+      cpu_vif.reset = 0;
+      @(posedge cpu_vif.clock);
+      cpu_vif.reset = 0;
+      @(posedge cpu_vif.clock);
+      cpu_vif.reset = 1;
+      @(posedge cpu_vif.clock);
+      
+      phase.drop_objection(this);
+    endtask
 
   task run_phase(uvm_phase phase);
     
-    // Now drive normal traffic
-    forever begin
+    cpu_vif.program_en = 1;
+    
+    // Program
+    repeat (100) begin
       seq_item_port.get_next_item(req);
-
-      // Wiggle pins of DUT
-      cpu_vif.instr  = req.instr;
+      cpu_vif.program_en = 1;
+   	  cpu_vif.program_data = req.instr;
       
-      // CPU needs 5 cycles to complete an instruction
-      repeat (CPU_CYCLES) @(posedge cpu_vif.clock);
-
       seq_item_port.item_done();
+      @(posedge cpu_vif.clock);
     end
+    
+    // Stop programming
+    cpu_vif.program_en = 0;
+    
+    // Now drive normal traffic
+    //forever begin
+      
+      //repeat (5) @(posedge cpu_vif.clock);
+      
+    //end
   endtask
 
 endclass: my_driver

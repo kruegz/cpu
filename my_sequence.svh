@@ -33,7 +33,7 @@ class my_sequence extends uvm_sequence#(my_transaction);
     end
     
     // Fibonacci
-    repeat(10) begin
+    forever begin
       
       // ADD r0 r1 -> r2
       start_item(req); 
