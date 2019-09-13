@@ -26,7 +26,7 @@ class my_sequence extends uvm_sequence#(my_transaction);
     req = my_transaction::type_id::create("req");
     
     // NOPS
-    repeat(10) begin
+    repeat(1) begin
       start_item(req); 
       req.instr = 16'b0;
       finish_item(req);
@@ -48,6 +48,11 @@ class my_sequence extends uvm_sequence#(my_transaction);
       // OR r2 r2 -> r1 (MOV r2 -> r1)
       start_item(req); 
       req.instr = {4'h4, 4'h2, 4'h2, 4'h1};
+      finish_item(req);
+      
+      // JNZ r3 0
+      start_item(req); 
+      req.instr = {4'h8, 4'h3, 8'h0};
       finish_item(req);
       
     end

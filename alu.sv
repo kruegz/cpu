@@ -26,7 +26,7 @@ module alu(alu_if.in aif);
       
     endcase
     
-    //$strobe("ALU %s %h %h %h", aif.opcode.name(), aif.r1, aif.r2, aif.dout);
+    $strobe("ALU %s %h %h %h", aif.opcode.name(), aif.r1, aif.r2, aif.dout);
     
     // TODO: add status register
     

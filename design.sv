@@ -1,21 +1,21 @@
 
 typedef enum logic [3:0] {
-  NOP = 4'b0000,
-  INC,
-  DEC,
-  AND,
-  OR,
-  XOR,
-  ADD,
-  SUB,
-  I8,
-  I9,
-  I10,
-  I11,
-  I12,
-  I13,
-  I14,
-  I15
+  NOP = 4'h0,
+  INC = 4'h1,
+  DEC = 4'h2,
+  AND = 4'h3,
+  OR  = 4'h4,
+  XOR = 4'h5,
+  ADD = 4'h6,
+  SUB = 4'h7,
+  JNZ = 4'h8,
+  I9  = 4'h9,
+  I10 = 4'hA,
+  I11 = 4'hB,
+  I12 = 4'hC,
+  I13 = 4'hD,
+  I14 = 4'hE,
+  I15 = 4'hF
 } opcode_e;
 
 
@@ -94,12 +94,15 @@ module cpu(cpu_if cif);
   
   // Register values
   logic [RF_WIDTH-1:0] dout;
+  logic [RF_WIDTH-1:0] r1;
+  logic [RF_WIDTH-1:0] r2;
   
   
   
   // Instruction pointer
   logic [31:0] instr_ptr;
   logic [31:0] program_ptr;
+  logic jump;
   
   //assign r1 = rf[r1addr];
   //assign r2 = rf[r2addr];
@@ -158,6 +161,8 @@ module cpu(cpu_if cif);
           r2addr <= instr[7:4];
           rdaddr <= instr[3:0];
           
+          r1     <= reg_file[instr[11:8]];
+          r2     <= reg_file[instr[7:4]];
           $strobe("opcode=%h r1addr=%h r2addr=%h rdaddr=%h", opcode, r1addr, r2addr, rdaddr);
           
           cpu_state <= EXECUTE;
@@ -168,8 +173,10 @@ module cpu(cpu_if cif);
           
           // Perform ALU operation
           aif.opcode <= opcode;
-          aif.r1 <= reg_file[r1addr];
-          aif.r2 <= reg_file[r2addr];
+          aif.r1 <= r1;
+          aif.r2 <= r2;
+          
+          jump <= ((opcode == JNZ) & (r1 != 0)) ? 1 : 0;
           
           $strobe("opcode=%s r1=%h r2=%h", aif.opcode.name(), aif.r1, aif.r2);
           
@@ -192,10 +199,15 @@ module cpu(cpu_if cif);
         
         WB: begin
           
-          // Write back to register file
-          reg_file[rdaddr] <= dout;
           
-          $strobe("reg_file[rdaddr]=%h", reg_file[rdaddr]);
+          if (jump) begin
+            instr_ptr <= {r2addr, rdaddr};
+          end else begin
+            // Write back to register file
+            reg_file[rdaddr] <= dout;
+          end
+          
+          $strobe("reg_file[%0d]=%h", rdaddr, reg_file[rdaddr]);
           
           cpu_state <= FETCH;
           
